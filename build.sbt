@@ -1,4 +1,4 @@
-name := "-sn-template"
+name := "libcurl"
 
 version := "0.1.0"
 

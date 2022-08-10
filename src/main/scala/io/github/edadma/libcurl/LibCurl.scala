@@ -1,0 +1,78 @@
+package io.github.edadma.libcurl
+
+import scala.scalanative.unsafe._
+
+@link("curl")
+@extern object LibCurl:
+  type CurlBuffer = CStruct2[CString, CSize]
+
+  type Curl = Ptr[Byte]
+  type CurlOption = Int
+  type CurlInfo = CInt
+
+  @name("curl_global_init")
+  def global_init(flags: Long): Unit = extern
+
+  @name("curl_easy_init")
+  def easy_init(): Curl = extern
+
+  @name("curl_easy_setopt")
+  def curl_easy_setopt(handle: Curl, option: CInt, parameter: Ptr[Byte]): CInt = extern
+
+  @name("curl_easy_getinfo")
+  def easy_getinfo(handle: Curl, info: CInt, parameter: Ptr[Byte]): CInt = extern
+
+  @name("curl_easy_perform")
+  def easy_perform(easy_handle: Curl): CInt = extern
+
+  type CurlSList = CStruct2[Ptr[Byte], CString]
+
+  @name("curl_slist_append")
+  def slist_append(slist: Ptr[CurlSList], string: CString): Ptr[CurlSList] = extern
+
+  @name("curl_slist_free_all")
+  def slist_free_all(slist: Ptr[CurlSList]): Unit = extern
+
+  @name("curl_global_cleanup")
+  def global_cleanup(): Unit = extern
+
+  @name("curl_easy_cleanup")
+  def easy_cleanup(handle: Curl): Unit = extern
+
+  type CurlRequest = CStruct4[Ptr[Byte], Long, Long, Int]
+  type CurlMessage = CStruct3[Int, Curl, Ptr[Byte]]
+
+  type CurlDataCallback = CFuncPtr4[Ptr[Byte], CSize, CSize, Ptr[Byte], CSize]
+  type CurlSocketCallback = CFuncPtr5[Curl, Ptr[Byte], CInt, Ptr[Byte], Ptr[Byte], CInt]
+  type CurlTimerCallback = CFuncPtr3[MultiCurl, Long, Ptr[Byte], CInt]
+
+  type MultiCurl = Ptr[Byte]
+
+  @name("curl_multi_init")
+  def multi_init(): MultiCurl = extern
+
+  @name("curl_multi_add_handle")
+  def multi_add_handle(multi: MultiCurl, easy: Curl): Int = extern
+
+  @name("curl_multi_setopt")
+  def curl_multi_setopt(multi: MultiCurl, option: CInt, parameter: CVarArg): CInt = extern
+
+  @name("curl_multi_setopt")
+  def multi_setopt_ptr(multi: MultiCurl, option: CInt, parameter: Ptr[Byte]): CInt = extern
+
+  @name("curl_multi_assign")
+  def multi_assign(multi: MultiCurl, socket: Ptr[Byte], socket_data: Ptr[Byte]): Int = extern
+
+  @name("curl_multi_socket_action")
+  def multi_socket_action(multi: MultiCurl, socket: Ptr[Byte], events: Int, numhandles: Ptr[Int]): Int = extern
+
+  @name("curl_multi_info_read")
+  def multi_info_read(multi: MultiCurl, message: Ptr[Int]): Ptr[CurlMessage] = extern
+
+  @name("curl_multi_perform")
+  def multi_perform(multi: MultiCurl, numhandles: Ptr[Int]): Int = extern
+
+  @name("curl_multi_cleanup")
+  def multi_cleanup(multi: MultiCurl): Int = extern
+
+  def curl_easy_strerror(code: Int): CString = extern
