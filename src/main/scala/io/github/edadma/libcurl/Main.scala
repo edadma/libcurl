@@ -1,32 +1,32 @@
-package io.github.edadma.libcurl
-
-import scala.scalanative.unsafe.*
-import scala.scalanative.unsigned.*
-import scala.scalanative.libc.*
-import io.github.edadma.libcurl.extern.LibCurl.*
-import LibCurlConstants.*
-
-import scala.collection.mutable
-import stdlib.*
-import stdio.*
-import string.*
-import scala.collection.mutable.HashMap
-
-@main def run(): Unit =
-
-  globalInit(GLOBAL_ALL)
-
-  val curl = easyInit
-
-  if curl.nonNull then
-    curl.easySetopt(CurlOption.URL, "https://example.com")
-    // curl.easySetopt(CurlOption.NOBODY, 1)
-
-    curl.easyPerform match
-      case Code.OK => curl.easyCleanup()
-      case c       => println(easyStrerror(c))
-
-  globalCleanup()
+//package io.github.edadma.libcurl
+//
+//import scala.scalanative.unsafe.*
+//import scala.scalanative.unsigned.*
+//import scala.scalanative.libc.*
+//import io.github.edadma.libcurl.extern.LibCurl.*
+//import LibCurlConstants.*
+//
+//import scala.collection.mutable
+//import stdlib.*
+//import stdio.*
+//import string.*
+//import scala.collection.mutable.HashMap
+//
+//@main def run(): Unit =
+//
+//  globalInit(GLOBAL_ALL)
+//
+//  val curl = easyInit
+//
+//  if curl.nonNull then
+//    curl.easySetopt(CurlOption.URL, "https://example.com")
+//    curl.easySetopt(CurlOption.NOBODY, 1)
+//
+//    curl.easyPerform match
+//      case Code.OK => curl.easyCleanup()
+//      case c       => println(easyStrerror(c))
+//
+//  globalCleanup()
 
 //  var request_serial = 0L
 //  val responses = mutable.HashMap[Long, ResponseState]()
