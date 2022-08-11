@@ -1206,8 +1206,93 @@ package object libcurl:
 
     def easyCleanup(): Unit = lib.curl_easy_cleanup(curl)
 
+    def easyGetinfo(info: Info): (Long, Code) =
+      val longp = stackalloc[CLong]()
+
+      (!longp, lib.curl_easy_getinfo(curl, info.value, longp))
+  end Curl
+
   def easyInit: Curl = lib.curl_easy_init
 
   def globalCleanup(): Unit = lib.curl_global_cleanup()
 
   def easyStrerror(code: Code): String = fromCString(lib.curl_easy_strerror(code.value))
+
+  val CURLINFO_STRING = 0x100000
+  val CURLINFO_LONG = 0x200000
+  val CURLINFO_DOUBLE = 0x300000
+  val CURLINFO_SLIST = 0x400000
+  val CURLINFO_PTR = 0x400000 /* same as SLIST */
+  val CURLINFO_SOCKET = 0x500000
+  val CURLINFO_OFF_T = 0x600000
+
+  implicit class Info(val value: lib.CURLINFO) extends AnyVal
+
+  object Info:
+    final val EFFECTIVE_URL = new Info(CURLINFO_STRING + 1)
+    final val RESPONSE_CODE = new Info(CURLINFO_LONG + 2)
+    final val TOTAL_TIME = new Info(CURLINFO_DOUBLE + 3)
+    final val NAMELOOKUP_TIME = new Info(CURLINFO_DOUBLE + 4)
+    final val CONNECT_TIME = new Info(CURLINFO_DOUBLE + 5)
+    final val PRETRANSFER_TIME = new Info(CURLINFO_DOUBLE + 6)
+    final val SIZE_UPLOAD = new Info(CURLINFO_DOUBLE + 7)
+    final val SIZE_UPLOAD_T = new Info(CURLINFO_OFF_T + 7)
+    final val SIZE_DOWNLOAD = new Info(CURLINFO_DOUBLE + 8)
+    final val SIZE_DOWNLOAD_T = new Info(CURLINFO_OFF_T + 8)
+    final val SPEED_DOWNLOAD = new Info(CURLINFO_DOUBLE + 9)
+    final val SPEED_DOWNLOAD_T = new Info(CURLINFO_OFF_T + 9)
+    final val SPEED_UPLOAD = new Info(CURLINFO_DOUBLE + 10)
+    final val SPEED_UPLOAD_T = new Info(CURLINFO_OFF_T + 10)
+    final val HEADER_SIZE = new Info(CURLINFO_LONG + 11)
+    final val REQUEST_SIZE = new Info(CURLINFO_LONG + 12)
+    final val SSL_VERIFYRESULT = new Info(CURLINFO_LONG + 13)
+    final val FILETIME = new Info(CURLINFO_LONG + 14)
+    final val FILETIME_T = new Info(CURLINFO_OFF_T + 14)
+    final val CONTENT_LENGTH_DOWNLOAD = new Info(CURLINFO_DOUBLE + 15)
+    final val CONTENT_LENGTH_DOWNLOAD_T = new Info(CURLINFO_OFF_T + 15)
+    final val CONTENT_LENGTH_UPLOAD = new Info(CURLINFO_DOUBLE + 16)
+    final val CONTENT_LENGTH_UPLOAD_T = new Info(CURLINFO_OFF_T + 16)
+    final val STARTTRANSFER_TIME = new Info(CURLINFO_DOUBLE + 17)
+    final val CONTENT_TYPE = new Info(CURLINFO_STRING + 18)
+    final val REDIRECT_TIME = new Info(CURLINFO_DOUBLE + 19)
+    final val REDIRECT_COUNT = new Info(CURLINFO_LONG + 20)
+    final val PRIVATE = new Info(CURLINFO_STRING + 21)
+    final val HTTP_CONNECTCODE = new Info(CURLINFO_LONG + 22)
+    final val HTTPAUTH_AVAIL = new Info(CURLINFO_LONG + 23)
+    final val PROXYAUTH_AVAIL = new Info(CURLINFO_LONG + 24)
+    final val OS_ERRNO = new Info(CURLINFO_LONG + 25)
+    final val NUM_CONNECTS = new Info(CURLINFO_LONG + 26)
+    final val SSL_ENGINES = new Info(CURLINFO_SLIST + 27)
+    final val COOKIELIST = new Info(CURLINFO_SLIST + 28)
+    final val LASTSOCKET = new Info(CURLINFO_LONG + 29)
+    final val FTP_ENTRY_PATH = new Info(CURLINFO_STRING + 30)
+    final val REDIRECT_URL = new Info(CURLINFO_STRING + 31)
+    final val PRIMARY_IP = new Info(CURLINFO_STRING + 32)
+    final val APPCONNECT_TIME = new Info(CURLINFO_DOUBLE + 33)
+    final val CERTINFO = new Info(CURLINFO_PTR + 34)
+    final val CONDITION_UNMET = new Info(CURLINFO_LONG + 35)
+    final val RTSP_SESSION_ID = new Info(CURLINFO_STRING + 36)
+    final val RTSP_CLIENT_CSEQ = new Info(CURLINFO_LONG + 37)
+    final val RTSP_SERVER_CSEQ = new Info(CURLINFO_LONG + 38)
+    final val RTSP_CSEQ_RECV = new Info(CURLINFO_LONG + 39)
+    final val PRIMARY_PORT = new Info(CURLINFO_LONG + 40)
+    final val LOCAL_IP = new Info(CURLINFO_STRING + 41)
+    final val LOCAL_PORT = new Info(CURLINFO_LONG + 42)
+    final val TLS_SESSION = new Info(CURLINFO_PTR + 43)
+    final val ACTIVESOCKET = new Info(CURLINFO_SOCKET + 44)
+    final val TLS_SSL_PTR = new Info(CURLINFO_PTR + 45)
+    final val HTTP_VERSION = new Info(CURLINFO_LONG + 46)
+    final val PROXY_SSL_VERIFYRESULT = new Info(CURLINFO_LONG + 47)
+    final val PROTOCOL = new Info(CURLINFO_LONG + 48)
+    final val SCHEME = new Info(CURLINFO_STRING + 49)
+    final val TOTAL_TIME_T = new Info(CURLINFO_OFF_T + 50)
+    final val NAMELOOKUP_TIME_T = new Info(CURLINFO_OFF_T + 51)
+    final val CONNECT_TIME_T = new Info(CURLINFO_OFF_T + 52)
+    final val PRETRANSFER_TIME_T = new Info(CURLINFO_OFF_T + 53)
+    final val STARTTRANSFER_TIME_T = new Info(CURLINFO_OFF_T + 54)
+    final val REDIRECT_TIME_T = new Info(CURLINFO_OFF_T + 55)
+    final val APPCONNECT_TIME_T = new Info(CURLINFO_OFF_T + 56)
+    final val RETRY_AFTER = new Info(CURLINFO_OFF_T + 57)
+    final val EFFECTIVE_METHOD = new Info(CURLINFO_STRING + 58)
+    final val PROXY_ERROR = new Info(CURLINFO_LONG + 59)
+    final val REFERER = new Info(CURLINFO_STRING + 60)

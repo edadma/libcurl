@@ -1,6 +1,6 @@
 name := "libcurl"
 
-version := "0.1.0"
+version := "0.1.0-pre.1"
 
 scalaVersion := "3.1.3"
 
