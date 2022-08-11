@@ -12,9 +12,6 @@ import stdio.*
 import string.*
 import scala.collection.mutable.HashMap
 
-import scala.scalanative.runtime.Boxes
-import scala.scalanative.runtime.Intrinsics
-
 @main def run(): Unit =
 
   globalInit(GLOBAL_ALL)
@@ -22,7 +19,8 @@ import scala.scalanative.runtime.Intrinsics
   val curl = easyInit
 
   if curl.nonNull then
-    curl.easySetopt(CurlOption.URL, c"https://example.com")
+    curl.easySetopt(CurlOption.URL, "https://example.com")
+    // curl.easySetopt(CurlOption.NOBODY, 1)
 
     curl.easyPerform match
       case Code.OK => curl.easyCleanup()

@@ -1196,7 +1196,11 @@ package object libcurl:
 
     def nonNull: Boolean = curl != null
 
-    def easySetopt(option: CurlOption, args: CVarArg*): Code = lib.curl_easy_setopt(curl, option.value, args)
+    def easySetopt(option: CurlOption, arg: String): Code =
+      Zone(implicit z => lib.curl_easy_setopt(curl, option.value, toCString(arg)))
+
+    def easySetopt(option: CurlOption, arg: Long): Code =
+      lib.curl_easy_setopt(curl, option.value, arg.asInstanceOf[CLong])
 
     def easyPerform: Code = lib.curl_easy_perform(curl)
 
