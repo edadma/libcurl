@@ -1206,10 +1206,10 @@ package object libcurl:
 
     def easyCleanup(): Unit = lib.curl_easy_cleanup(curl)
 
-    def easyGetinfo(info: Info): (Long, Code) =
+    def easyGetinfo(info: Info): (Code, Long) =
       val longp = stackalloc[CLong]()
 
-      (!longp, lib.curl_easy_getinfo(curl, info.value, longp))
+      (lib.curl_easy_getinfo(curl, info.value, longp), !longp)
   end Curl
 
   def easyInit: Curl = lib.curl_easy_init
