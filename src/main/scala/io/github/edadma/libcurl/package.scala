@@ -1198,4 +1198,12 @@ package object libcurl:
 
     def easySetopt(option: CurlOption, args: CVarArg*): Code = lib.curl_easy_setopt(curl, option.value, args)
 
+    def easyPerform: Code = lib.curl_easy_perform(curl)
+
+    def easyCleanup(): Unit = lib.curl_easy_cleanup(curl)
+
   def easyInit: Curl = lib.curl_easy_init
+
+  def globalCleanup(): Unit = lib.curl_global_cleanup()
+
+  def easyStrerror(code: Code): String = fromCString(lib.curl_easy_strerror(code.value))

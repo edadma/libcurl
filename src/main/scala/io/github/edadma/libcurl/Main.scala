@@ -21,7 +21,14 @@ import scala.scalanative.runtime.Intrinsics
 
   val curl = easyInit
 
-  if curl.nonNull then curl.easySetopt(CurlOption.URL, c"https://example.com")
+  if curl.nonNull then
+    curl.easySetopt(CurlOption.URL, c"https://example.com")
+
+    curl.easyPerform match
+      case Code.OK => curl.easyCleanup()
+      case c       => println(easyStrerror(c))
+
+  globalCleanup()
 
 //  var request_serial = 0L
 //  val responses = mutable.HashMap[Long, ResponseState]()
