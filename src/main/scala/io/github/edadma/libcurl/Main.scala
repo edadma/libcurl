@@ -23,7 +23,9 @@
 //    curl.easySetopt(CurlOption.NOBODY, 1)
 //
 //    curl.easyPerform match
-//      case Code.OK => curl.easyCleanup()
+//      case Code.OK =>
+//        println(curl.easyGetinfo(Info.RESPONSE_CODE))
+//        curl.easyCleanup()
 //      case c       => println(easyStrerror(c))
 //
 //  globalCleanup()
