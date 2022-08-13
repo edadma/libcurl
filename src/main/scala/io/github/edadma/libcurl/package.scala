@@ -1191,7 +1191,7 @@ package object libcurl:
     /* Set MIME option flags. */
     final val MIME_OPTIONS = new CurlOption(CURLOPTTYPE_LONG + 315)
 
-  implicit class Curl private[libcurl] (val curl: lib.CURL) extends AnyVal:
+  implicit class Curl(val curl: lib.CURL) extends AnyVal:
     def isNull: Boolean = curl == null
 
     def nonNull: Boolean = curl != null
