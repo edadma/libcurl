@@ -1,34 +1,32 @@
-//package io.github.edadma.libcurl
-//
-//import scala.scalanative.unsafe.*
-//import scala.scalanative.unsigned.*
-//import scala.scalanative.libc.*
-//import io.github.edadma.libcurl.extern.LibCurl.*
-//import LibCurlConstants.*
-//
-//import scala.collection.mutable
-//import stdlib.*
-//import stdio.*
-//import string.*
-//import scala.collection.mutable.HashMap
-//
-//@main def run(): Unit =
-//
-//  globalInit(GLOBAL_ALL)
-//
-//  val curl = easyInit
-//
-//  if curl.nonNull then
-//    curl.easySetopt(CurlOption.URL, "https://example.com")
-//    curl.easySetopt(CurlOption.NOBODY, 1)
-//
-//    curl.easyPerform match
-//      case Code.OK =>
+package io.github.edadma.libcurl
+
+import scala.scalanative.unsafe.*
+import scala.scalanative.unsigned.*
+import scala.scalanative.libc.*
+import io.github.edadma.libcurl.extern.LibCurl.*
+import LibCurlConstants.*
+
+import scala.collection.mutable
+import stdlib.*
+import stdio.*
+import string.*
+import scala.collection.mutable.HashMap
+
+@main def run(): Unit =
+  globalInit(GLOBAL_ALL)
+
+  val curl = easyInit
+
+  if curl.nonNull then
+    curl.easySetopt(CurlOption.URL, "http://localhost:3000")
+    curl.easySetoptWriteFunction(a => println(new String(a)))
+    curl.easyPerform match
+      case Code.OK =>
 //        println(curl.easyGetinfo(Info.RESPONSE_CODE))
-//        curl.easyCleanup()
-//      case c       => println(easyStrerror(c))
-//
-//  globalCleanup()
+        curl.easyCleanup()
+      case c => println(easyStrerror(c))
+
+  globalCleanup()
 
 //  var request_serial = 0L
 //  val responses = mutable.HashMap[Long, ResponseState]()
