@@ -29,11 +29,9 @@ import scala.scalanative.unsafe._
 
   def curl_easy_setopt(curl: CURL, option: CURLoption, arg: CLong): CURLcode = extern
 
-  def curl_easy_setopt(
-      curl: CURL,
-      option: CURLoption,
-      arg: (ptr: Ptr[CChar], size: CSize, nmemb: CSize, userdata: Ptr[Byte]) => CSize,
-  ): CURLcode = extern
+  type curl_write_callback = CFuncPtr4[Ptr[CChar], CSize, CSize, Ptr[Byte], CSize]
+
+  def curl_easy_setopt(curl: CURL, option: CURLoption, arg: curl_write_callback): CURLcode = extern
 
   def curl_easy_getinfo(handle: CURL, info: CURLINFO, arg: Ptr[CLong]): CURLcode = extern
 

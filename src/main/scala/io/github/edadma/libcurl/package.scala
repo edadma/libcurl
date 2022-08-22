@@ -1196,22 +1196,22 @@ package object libcurl:
 
   type WriteCallback = Array[Byte] => Unit
 
-  private var writeCallbackSerial = 0L
+  private var writeCallbackSerial = 1L
   private val writeCallbacks = new mutable.LongMap[WriteCallback]
-  private val writeCallback: (Ptr[CChar], CSize, CSize, Ptr[CChar]) => CSize =
+  private val writeCallback: lib.curl_write_callback =
     (ptr: Ptr[CChar], size: CSize, nmemb: CSize, userdata: Ptr[Byte]) =>
-//    val len = nmemb.toInt
-//    val data = new Array[Byte](len)
-//    var i = 0
-//
-//    while i < len do
-//      data(i) = !(ptr + i.toULong)
-//      i += 1
-//
-//    writeCallbacks get userdata.toLong foreach { cb =>
-//      cb(data)
-//      writeCallbacks -= userdata.toLong
-//    }
+      val len = nmemb.toInt
+      val data = new Array[Byte](len)
+      var i = 0
+
+      while i < len do
+        data(i) = !(ptr + i.toULong)
+        i += 1
+
+      writeCallbacks get userdata.toLong foreach { cb =>
+        cb(data)
+        writeCallbacks -= userdata.toLong
+      }
       nmemb
 
   implicit class Curl(val curl: lib.CURL) extends AnyVal:
@@ -1226,12 +1226,10 @@ package object libcurl:
       lib.curl_easy_setopt(curl, option.value, arg.asInstanceOf[CLong])
 
     def easySetoptWriteFunction(cb: WriteCallback): Code =
-      val code = lib.curl_easy_setopt(curl, CurlOption.WRITEFUNCTION.value, writeCallback)
-
-//      val code = lib.curl_easy_setopt(curl, CurlOption.WRITEDATA.value, writeCallbackSerial)
-//
-//      writeCallbackSerial += 1
-      code
+      lib.curl_easy_setopt(curl, CurlOption.WRITEDATA.value, writeCallbackSerial)
+      writeCallbacks(writeCallbackSerial) = cb
+      writeCallbackSerial += 1
+      lib.curl_easy_setopt(curl, CurlOption.WRITEFUNCTION.value, writeCallback)
 
     def easyPerform: Code = lib.curl_easy_perform(curl)
 

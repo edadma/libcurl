@@ -22,7 +22,7 @@ import scala.collection.mutable.HashMap
     curl.easySetoptWriteFunction(a => println(new String(a)))
     curl.easyPerform match
       case Code.OK =>
-//        println(curl.easyGetinfo(Info.RESPONSE_CODE))
+        println(curl.easyGetinfo(Info.RESPONSE_CODE))
         curl.easyCleanup()
       case c => println(easyStrerror(c))
 
