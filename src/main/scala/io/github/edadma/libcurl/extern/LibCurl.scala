@@ -55,7 +55,7 @@ import scala.scalanative.unsafe._
 
   def curl_multi_setopt_ptr(multi: CURLM, option: CInt, parameter: Ptr[Byte]): CInt = extern
 
-  def curl_multi_assign(multi: CURLM, socket: Ptr[Byte], socket_data: Ptr[Byte]): CInt = extern
+  def curl_multi_assign(multi_handle: CURLM, sockfd: CInt, sockptr: Ptr[Byte]): CInt = extern
 
   def curl_multi_socket_action(
       multi_handle: CURLM,
