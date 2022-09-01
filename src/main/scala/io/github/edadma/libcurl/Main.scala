@@ -13,12 +13,29 @@ import string.*
 import scala.collection.mutable.HashMap
 
 @main def run(): Unit =
+//  globalInit(GLOBAL_ALL)
+//
+//  val curl = easyInit
+//
+//  if curl.nonNull then
+//    curl.easySetopt(CurlOption.URL, "http://localhost:3000")
+//    curl.easySetopt(CurlOption.VERBOSE, 1L)
+//    curl.easySetoptWriteFunction(a => println(new String(a)))
+//    curl.easyPerform match
+//      case Code.OK =>
+//        println(curl.easyGetinfo(Info.RESPONSE_CODE))
+//        curl.easyCleanup()
+//      case c => println(easyStrerror(c))
+//
+//  globalCleanup()
+
   globalInit(GLOBAL_ALL)
 
   val curl = easyInit
 
   if curl.nonNull then
     curl.easySetopt(CurlOption.URL, "http://localhost:3000")
+    curl.easySetopt(CurlOption.VERBOSE, 1L)
     curl.easySetoptWriteFunction(a => println(new String(a)))
     curl.easyPerform match
       case Code.OK =>
@@ -27,6 +44,108 @@ import scala.collection.mutable.HashMap
       case c => println(easyStrerror(c))
 
   globalCleanup()
+
+  val dataCB = new CurlDataCallback {
+    def apply(ptr: Ptr[Byte], size: CSize, nmemb: CSize, data: Ptr[Byte]): CSize = {
+      val serial = !(data.asInstanceOf[Ptr[Long]])
+      val len = stackalloc[Double]
+      !len = 0
+      val strData = bufferToString(ptr, size, nmemb)
+      println(s"req $serial: got data of size ${size} x ${nmemb}")
+
+      val resp = requests(serial)
+      resp.body = resp.body + strData
+      requests(serial) = resp
+
+      return size * nmemb
+    }
+  }
+
+  val headerCB = new CurlDataCallback {
+    def apply(ptr: Ptr[Byte], size: CSize, nmemb: CSize, data: Ptr[Byte]): CSize = {
+      val serial = !(data.asInstanceOf[Ptr[Long]])
+      val len = stackalloc[Double]
+      !len = 0
+      val strData = bufferToString(ptr, size, nmemb)
+      println(s"req $serial: got header line of size ${size} x ${nmemb}")
+
+      val resp = requests(serial)
+      resp.body = resp.body + strData
+      requests(serial) = resp
+
+      return size * nmemb
+    }
+  }
+
+  val socketCB = new CurlSocketCallback {
+    def apply(curl: Curl, socket: Ptr[Byte], action: Int, data: Ptr[Byte], socket_data: Ptr[Byte]): Int = {
+      println(s"socketCB called with action ${action}")
+      val pollHandle = if (socket_data == null) {
+        println(s"initializing handle for socket ${socket}")
+        val buf = malloc(uv_handle_size(UV_POLL_T)).asInstanceOf[Ptr[Ptr[Byte]]]
+        !buf = socket
+        check(uv_poll_init_socket(loop, buf, socket), "uv_poll_init_socket")
+        check(multi_assign(multi, socket, buf.asInstanceOf[Ptr[Byte]]), "multi_assign")
+        buf
+      } else {
+        socket_data.asInstanceOf[Ptr[Ptr[Byte]]]
+      }
+
+      val events = action match {
+        case POLL_NONE   => None
+        case POLL_IN     => Some(UV_READABLE)
+        case POLL_OUT    => Some(UV_WRITABLE)
+        case POLL_INOUT  => Some(UV_READABLE | UV_WRITABLE)
+        case POLL_REMOVE => None
+      }
+
+      events match {
+        case Some(ev) =>
+          println(s"starting poll with events $ev")
+          uv_poll_start(pollHandle, ev, pollCB)
+        case None =>
+          println("stopping poll")
+          uv_poll_stop(pollHandle)
+          startTimerCB(multi, 1, null)
+      }
+      0
+    }
+  }
+
+  val pollCB = new PollCB {
+    def apply(pollHandle: PollHandle, status: Int, events: Int): Unit = {
+      println(s"""ready_for_curl fired with status ${status} and
+                events ${events}""")
+      val socket = !(pollHandle.asInstanceOf[Ptr[Ptr[Byte]]])
+      val actions = (events & 1) | (events & 2)
+      val running_handles = stackalloc[Int]
+      val result = multi_socket_action(multi, socket, actions, running_handles)
+      println("multi_socket_action", result)
+    }
+  }
+
+  val startTimerCB = new CurlTimerCallback {
+    def apply(curl: MultiCurl, timeout_ms: Long, data: Ptr[Byte]): Int = {
+      println(s"start_timer called with timeout ${timeout_ms} ms")
+      val time = if (timeout_ms < 1) {
+        println("setting effective timeout to 1")
+        1
+      } else timeout_ms
+      println("starting timer")
+      check(uv_timer_start(timerHandle, timeoutCB, time, 0), "uv_timer_start")
+      cleanup_requests()
+      0
+    }
+  }
+
+  val timeoutCB = new TimerCB {
+    def apply(handle: TimerHandle): Unit = {
+      println("in timeout callback")
+      val running_handles = stackalloc[Int]
+      multi_socket_action(multi, int_to_ptr(-1), 0, running_handles)
+      println(s"on_timer fired, ${!running_handles} sockets running")
+    }
+  }
 
 //  var request_serial = 0L
 //  val responses = mutable.HashMap[Long, ResponseState]()

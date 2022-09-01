@@ -1,9 +1,9 @@
 package io.github.edadma
 
-import scala.scalanative.unsafe._
-import scala.scalanative.unsigned._
-import scala.scalanative.runtime.Intrinsics.castLongToRawPtr
-import scala.scalanative.runtime.fromRawPtr
+import scala.scalanative.unsafe.*
+import scala.scalanative.unsigned.*
+//import scala.scalanative.runtime.Intrinsics.castLongToRawPtr
+//import scala.scalanative.runtime.{Intrinsics, fromRawPtr}
 import scala.collection.mutable
 
 package object libcurl:
@@ -1240,6 +1240,17 @@ package object libcurl:
 
       (lib.curl_easy_getinfo(curl, info.value, longp), !longp)
   end Curl
+
+  implicit class Curlm(val multi: lib.CURLM) extends AnyVal:
+    def isNull: Boolean = multi == null
+
+    def nonNull: Boolean = multi != null
+
+    def multiSocketAction(sockfd: Int, ev_bitmask: Int): (Code, Int) = //
+      val handles = stackalloc[CInt]()
+
+      (lib.curl_multi_socket_action(multi, sockfd, ev_bitmask, handles), !handles)
+  end Curlm
 
   def easyInit: Curl = lib.curl_easy_init
 

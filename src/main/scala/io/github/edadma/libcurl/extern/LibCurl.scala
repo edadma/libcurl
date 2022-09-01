@@ -9,6 +9,8 @@ import scala.scalanative.unsafe._
   type CURLINFO = CInt
   type CURLcode = CInt
 
+  type curl_socket_t = CInt
+
   type CurlRequest = CStruct4[Ptr[Byte], Long, Long, Int]
   type CURLMsg = CStruct3[Int, CURL, Ptr[Byte]]
   type CURLMsgp = Ptr[CStruct3[Int, CURL, Ptr[Byte]]]
@@ -47,20 +49,26 @@ import scala.scalanative.unsafe._
 
   def curl_multi_init(): CURLM = extern
 
-  def curl_multi_add_handle(multi: CURLM, easy: CURL): Int = extern
+  def curl_multi_add_handle(multi: CURLM, easy: CURL): CInt = extern
 
   def curl_multi_setopt(multi: CURLM, option: CInt, parameter: CVarArg): CInt = extern
 
   def curl_multi_setopt_ptr(multi: CURLM, option: CInt, parameter: Ptr[Byte]): CInt = extern
 
-  def curl_multi_assign(multi: CURLM, socket: Ptr[Byte], socket_data: Ptr[Byte]): Int = extern
+  def curl_multi_assign(multi: CURLM, socket: Ptr[Byte], socket_data: Ptr[Byte]): CInt = extern
 
-  def curl_multi_socket_action(multi: CURLM, socket: Ptr[Byte], events: Int, numhandles: Ptr[Int]): Int = extern
+  def curl_multi_socket_action(
+      multi_handle: CURLM,
+      sockfd: curl_socket_t,
+      ev_bitmask: CInt,
+      running_handles: Ptr[CInt],
+  ): CInt =
+    extern
 
   def curl_multi_info_read(multi: CURLM, message: Ptr[CInt]): CURLMsg = extern
 
-  def curl_multi_perform(multi: CURLM, numhandles: Ptr[Int]): Int = extern
+  def curl_multi_perform(multi: CURLM, numhandles: Ptr[CInt]): CInt = extern
 
-  def curl_multi_cleanup(multi: CURLM): Int = extern
+  def curl_multi_cleanup(multi: CURLM): CInt = extern
 
   def curl_easy_strerror(code: CInt): CString = extern

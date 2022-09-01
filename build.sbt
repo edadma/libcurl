@@ -1,6 +1,6 @@
 name := "libcurl"
 
-version := "0.1.0-pre.2"
+version := "0.0.1"
 
 scalaVersion := "3.1.3"
 
@@ -31,9 +31,16 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 resolvers += Resolver.githubPackages("edadma")
 
+resolvers += Resolver.githubPackages("spritzsn")
+
 licenses := Seq("ISC" -> url("https://opensource.org/licenses/ISC"))
 
 homepage := Some(url("https://github.com/edadma/" + name.value))
+
+libraryDependencies ++= Seq(
+  "io.github.spritzsn" %%% "libuv" % "0.0.22",
+  "io.github.spritzsn" %%% "async" % "0.0.9",
+)
 
 publishMavenStyle := true
 
