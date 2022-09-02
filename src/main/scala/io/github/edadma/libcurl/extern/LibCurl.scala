@@ -47,7 +47,7 @@ import scala.scalanative.unsafe._
 
   def curl_easy_cleanup(handle: CURL): Unit = extern
 
-  def curl_multi_init(): CURLM = extern
+  def curl_multi_init: CURLM = extern
 
   def curl_multi_add_handle(multi: CURLM, easy: CURL): CInt = extern
 

@@ -41,8 +41,8 @@ import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
   def init(): Unit = {
     if (!initialized) {
       println("initializing curl")
-      global_init(1)
-      multi = multi_init()
+      globalInit(GLOBAL_ALL)
+      multi = multiInit
       println(s"initilized multiHandle $multi")
       println("socket function")
       val setopt_r_1 = multi_setopt_ptr(multi, SOCKETFUNCTION, func_to_ptr(socketCB))

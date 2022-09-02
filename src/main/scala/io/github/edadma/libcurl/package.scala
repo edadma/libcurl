@@ -1241,6 +1241,8 @@ package object libcurl:
       (lib.curl_easy_getinfo(curl, info.value, longp), !longp)
   end Curl
 
+  def multiInit: Curlm = lib.curl_multi_init
+
   implicit class Curlm(val multi: lib.CURLM) extends AnyVal:
     def isNull: Boolean = multi == null
 
