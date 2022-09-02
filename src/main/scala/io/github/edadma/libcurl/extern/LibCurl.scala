@@ -13,7 +13,7 @@ import scala.scalanative.unsafe._
 
   type CurlRequest = CStruct4[Ptr[Byte], Long, Long, Int]
   type CURLMsg = CStruct3[Int, CURL, Ptr[Byte]]
-  type CURLMsgp = Ptr[CStruct3[Int, CURL, Ptr[Byte]]]
+  type CURLMsgp = Ptr[CURLMsg]
 
   type CurlDataCallback = CFuncPtr4[Ptr[Byte], CSize, CSize, Ptr[Byte], CSize]
   type CurlSocketCallback = CFuncPtr5[CURL, Ptr[Byte], CInt, Ptr[Byte], Ptr[Byte], CInt]
@@ -65,7 +65,7 @@ import scala.scalanative.unsafe._
   ): CInt =
     extern
 
-  def curl_multi_info_read(multi: CURLM, message: Ptr[CInt]): CURLMsg = extern
+  def curl_multi_info_read(multi_handle: CURLM, msgs_in_queue: Ptr[CInt]): CURLMsgp = extern
 
   def curl_multi_perform(multi: CURLM, numhandles: Ptr[CInt]): CInt = extern
 

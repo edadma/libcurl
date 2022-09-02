@@ -3,13 +3,11 @@ package io.github.edadma.libcurl
 import scala.scalanative.unsafe.*
 import scala.scalanative.unsigned.*
 import scala.scalanative.libc.*
+import stdlib.*
+import string.*
 import io.github.edadma.libcurl.extern.LibCurl.*
 
-import scala.collection.mutable
-import stdlib.*
-import stdio.*
-import string.*
-import scala.collection.mutable.HashMap
+import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
 
 @main def run(): Unit =
 //  globalInit(GLOBAL_ALL)
@@ -28,21 +26,80 @@ import scala.collection.mutable.HashMap
 //
 //  globalCleanup()
 
-  globalInit(GLOBAL_ALL)
+  var serial = 0L
 
-  val curl = easyInit
+  val loop = EventLoop.loop
+  var multi: MultiCurl = null
 
-  if curl.nonNull then
-    curl.easySetopt(CurlOption.URL, "http://localhost:3000")
-    curl.easySetopt(CurlOption.VERBOSE, 1L)
-    curl.easySetoptWriteFunction(a => println(new String(a)))
-    curl.easyPerform match
-      case Code.OK =>
-        println(curl.easyGetinfo(Info.RESPONSE_CODE))
-        curl.easyCleanup()
-      case c => println(easyStrerror(c))
+  val timerHandle: TimerHandle = malloc(uv_handle_size(UV_TIMER_T))
 
-  globalCleanup()
+  val requestPromises = mutable.Map[Long, Promise[ResponseState]]()
+  val requests = mutable.Map[Long, ResponseState]()
+
+  var initialized = false
+
+  def init(): Unit = {
+    if (!initialized) {
+      println("initializing curl")
+      global_init(1)
+      multi = multi_init()
+      println(s"initilized multiHandle $multi")
+      println("socket function")
+      val setopt_r_1 = multi_setopt_ptr(multi, SOCKETFUNCTION, func_to_ptr(socketCB))
+      println("timer function")
+      val setopt_r_2 = multi_setopt_ptr(multi, TIMERFUNCTION, func_to_ptr(startTimerCB))
+      println(s"timerCB: $startTimerCB")
+
+      check(uv_timer_init(loop, timerHandle), "uv_timer_init")
+      initialized = true
+      println("done")
+    }
+  }
+
+  def addHeaders(curl: Curl, headers: Seq[String]): Ptr[CurlSList] = {
+    var slist: Ptr[CurlSList] = null
+    for (h <- headers) {
+      addHeader(slist, h)
+    }
+    curl_easy_setopt(curl, HTTPHEADER, slist.asInstanceOf[Ptr[Byte]])
+    slist
+  }
+
+  def addHeader(slist: Ptr[CurlSList], header: String): Ptr[CurlSList] = Zone { implicit z =>
+    slist_append(slist, toCString(header))
+  }
+
+  def startRequest(
+      method: Int,
+      url: String,
+      headers: Seq[String] = Seq.empty,
+      body: String = "",
+  ): Future[ResponseState] = Zone { implicit z =>
+    init()
+    val curlHandle = easy_init()
+    serial += 1
+    val reqId = serial
+    println(s"initializing handle $curlHandle for request $reqId")
+    val req_id_ptr = malloc(sizeof[Long]).asInstanceOf[Ptr[Long]]
+    !req_id_ptr = reqId
+    requests(reqId) = ResponseState()
+    val promise = Promise[ResponseState]()
+    requestPromises(reqId) = promise
+
+    method match {
+      case GET =>
+        check(curl_easy_setopt(curlHandle, URL, toCString(url)), "easy_setopt")
+        check(curl_easy_setopt(curlHandle, WRITECALLBACK, func_to_ptr(dataCB)), "easy_setopt")
+        check(curl_easy_setopt(curlHandle, WRITEDATA, req_id_ptr.asInstanceOf[Ptr[Byte]]), "easy_setopt")
+        check(curl_easy_setopt(curlHandle, HEADERCALLBACK, func_to_ptr(headerCB)), "easy_setopt")
+        check(curl_easy_setopt(curlHandle, HEADERDATA, req_id_ptr.asInstanceOf[Ptr[Byte]]), "easy_setopt")
+        check(curl_easy_setopt(curlHandle, PRIVATEDATA, req_id_ptr.asInstanceOf[Ptr[Byte]]), "easy_setopt")
+    }
+    multi_add_handle(multi, curlHandle)
+
+    println("request initialized")
+    promise.future
+  }
 
   val dataCB =
     (ptr: Ptr[Byte], size: CSize, nmemb: CSize, data: Ptr[Byte]) => {
@@ -140,6 +197,34 @@ import scala.collection.mutable.HashMap
       println(s"on_timer fired, ${!running_handles} sockets running")
     }
 
+  def cleanup_requests(): Unit = {
+    val messages = stackalloc[Int]()
+    val privateDataPtr = stackalloc[Ptr[Long]]()
+    var message: Ptr[CurlMessage] = multi_info_read(multi, messages)
+    while (message != null) {
+      println(s"""Got a message ${message._1} from multi_info_read,
+              ${!messages} left in queue""")
+      val handle: Curl = message._2
+      check(easy_getinfo(handle, GET_PRIVATEDATA, privateDataPtr.asInstanceOf[Ptr[Byte]]), "getinfo")
+      val privateData = !privateDataPtr
+      val reqId = !privateData
+      val reqData = requests.remove(reqId).get
+      val promise = Curl.requestPromises.remove(reqId).get
+      promise.success(reqData)
+      message = curl_multi_info_read(multi, messages)
+    }
+    println("done handling messages")
+  }
+
+  def bufferToString(ptr: Ptr[Byte], size: CSize, nmemb: CSize): String = {
+    val byteSize = size * nmemb
+    val buffer = malloc(byteSize + 1.toUInt)
+    strncpy(buffer, ptr, byteSize + 1.toUInt)
+    val res = fromCString(buffer)
+    free(buffer)
+    res
+  }
+
 //  var request_serial = 0L
 //  val responses = mutable.HashMap[Long, ResponseState]()
 //
@@ -156,15 +241,6 @@ import scala.collection.mutable.HashMap
 //
 //  def long_to_ptr(l: Long): Ptr[Byte] = {
 //    Boxes.boxToPtr[Byte](Intrinsics.castLongToRawPtr(l))
-//  }
-//
-//  def bufferToString(ptr: Ptr[Byte], size: CSize, nmemb: CSize): String = {
-//    val byteSize = size * nmemb
-//    val buffer = malloc(byteSize + 1.toUInt)
-//    strncpy(buffer, ptr, byteSize + 1.toUInt)
-//    val res = fromCString(buffer)
-//    free(buffer)
-//    res
 //  }
 //
 //  val writeCB: CurlDataCallback =
