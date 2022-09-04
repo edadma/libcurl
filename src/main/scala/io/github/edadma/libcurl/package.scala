@@ -120,6 +120,26 @@ package object libcurl:
     final val PROXY = new Code(97)
     final val SSL_CLIENTCERT = new Code(98)
 
+  implicit class MCode(val value: lib.CURLMcode) extends AnyVal
+
+  object MCode:
+    final val CALL_MULTI_PERFORM = MCode(-1) /* please call curl_multi_perform() or
+                                      curl_multi_socket*() soon */
+    final val OK = MCode(0)
+    final val BAD_HANDLE = MCode(1)      /* the passed-in handle is not a valid CURLM handle */
+    final val BAD_EASY_HANDLE = MCode(2) /* an easy handle was not good/valid */
+    final val OUT_OF_MEMORY = MCode(3)   /* if you ever get this, you're in deep sh*t */
+    final val INTERNAL_ERROR = MCode(4)  /* this is a libcurl bug */
+    final val BAD_SOCKET = MCode(5)      /* the passed in socket argument did not match */
+    final val UNKNOWN_OPTION = MCode(6)  /* curl_multi_setopt() with unsupported option */
+    final val ADDED_ALREADY = MCode(7)   /* an easy handle already added to a multi handle was
+                              attempted to get added - again */
+    final val RECURSIVE_API_CALL = MCode(8) /* an api function was called from inside a
+                                 callback */
+    final val WAKEUP_FAILURE = MCode(9)  /* wakeup is unavailable or failed */
+    final val BAD_FUNCTION_ARGUMENT = MCode(10) /* function called with a bad parameter */
+    final val ABORTED_BY_CALLBACK = MCode(11)
+
   def globalInit(flags: Long): Code = lib.curl_global_init(flags)
 
   implicit class CurlOption(val value: lib.CURLoption) extends AnyVal

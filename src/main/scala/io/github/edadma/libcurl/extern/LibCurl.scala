@@ -8,6 +8,7 @@ import scala.scalanative.unsafe._
   type CURLoption = CInt
   type CURLINFO = CInt
   type CURLcode = CInt
+  type CURLMcode = CInt
 
   type curl_socket_t = CInt
 
@@ -51,9 +52,9 @@ import scala.scalanative.unsafe._
 
   def curl_multi_add_handle(multi: CURLM, easy: CURL): CInt = extern
 
-  def curl_multi_setopt(multi: CURLM, option: CInt, parameter: CVarArg): CInt = extern
+  def curl_multi_setopt(multi_handle: CURLM, option: CInt, param: CVarArg): CInt = extern
 
-  def curl_multi_setopt_ptr(multi: CURLM, option: CInt, parameter: Ptr[Byte]): CInt = extern
+  def curl_multi_setopt(multi_handle: CURLM, option: CInt, param: Ptr[Byte]): CInt = extern
 
   def curl_multi_assign(multi_handle: CURLM, sockfd: CInt, sockptr: Ptr[Byte]): CInt = extern
 
