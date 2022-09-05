@@ -141,54 +141,54 @@ package object libcurl:
 
   object CurlMOption:
     /* This is the socket callback function pointer */
-    final val CURLMOPT_SOCKETFUNCTION = new CurlMOption(CURLOPTTYPE_FUNCTIONPOINT + 1)
+    final val SOCKETFUNCTION = new CurlMOption(CURLOPTTYPE_FUNCTIONPOINT + 1)
 
     /* This is the argument passed to the socket callback */
-    final val CURLMOPT_SOCKETDATA = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 2)
+    final val SOCKETDATA = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 2)
 
       /* set to 1 to enable pipelining for this multi handle */
-    final val CURLMOPT_PIPELINING = new CurlMOption(CURLOPTTYPE_LONG + 3)
+    final val PIPELINING = new CurlMOption(CURLOPTTYPE_LONG + 3)
 
      /* This is the timer callback function pointer */
-    final val CURLMOPT_TIMERFUNCTION = new CurlMOption(CURLOPTTYPE_FUNCTIONPOINT + 4)
+    final val TIMERFUNCTION = new CurlMOption(CURLOPTTYPE_FUNCTIONPOINT + 4)
 
     /* This is the argument passed to the timer callback */
-    final val CURLMOPT_TIMERDATA = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 5)
+    final val TIMERDATA = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 5)
 
     /* maximum number of entries in the connection cache */
-    final val CURLMOPT_MAXCONNECTS = new CurlMOption(CURLOPTTYPE_LONG + 6)
+    final val MAXCONNECTS = new CurlMOption(CURLOPTTYPE_LONG + 6)
 
     /* maximum number of (pipelining) connections to one host */
-    final val CURLMOPT_MAX_HOST_CONNECTIONS = new CurlMOption(CURLOPTTYPE_LONG + 7)
+    final val MAX_HOST_CONNECTIONS = new CurlMOption(CURLOPTTYPE_LONG + 7)
 
     /* maximum number of requests in a pipeline */
-    final val CURLMOPT_MAX_PIPELINE_LENGTH = new CurlMOption(CURLOPTTYPE_LONG + 8)
+    final val MAX_PIPELINE_LENGTH = new CurlMOption(CURLOPTTYPE_LONG + 8)
 
     /* a connection with a content-length longer than this
        will not be considered for pipelining */
-    final val CURLMOPT_CONTENT_LENGTH_PENALTY_SIZE = new CurlMOption(CURLOPTTYPE_OFF_T + 9)
+    final val CONTENT_LENGTH_PENALTY_SIZE = new CurlMOption(CURLOPTTYPE_OFF_T + 9)
 
     /* a connection with a chunk length longer than this
        will not be considered for pipelining */
-    final val CURLMOPT_CHUNK_LENGTH_PENALTY_SIZE = new CurlMOption(CURLOPTTYPE_OFF_T + 10)
+    final val CHUNK_LENGTH_PENALTY_SIZE = new CurlMOption(CURLOPTTYPE_OFF_T + 10)
 
     /* a list of site names(+port) that are blocked from pipelining */
-    final val CURLMOPT_PIPELINING_SITE_BL = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 11)
+    final val PIPELINING_SITE_BL = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 11)
 
     /* a list of server types that are blocked from pipelining */
-    final val CURLMOPT_PIPELINING_SERVER_BL = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 12)
+    final val PIPELINING_SERVER_BL = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 12)
 
     /* maximum number of open connections in total */
-    final val CURLMOPT_MAX_TOTAL_CONNECTIONS = new CurlMOption(CURLOPTTYPE_LONG + 13)
+    final val MAX_TOTAL_CONNECTIONS = new CurlMOption(CURLOPTTYPE_LONG + 13)
 
      /* This is the server push callback function pointer */
-    final val CURLMOPT_PUSHFUNCTION = new CurlMOption(CURLOPTTYPE_FUNCTIONPOINT + 14)
+    final val PUSHFUNCTION = new CurlMOption(CURLOPTTYPE_FUNCTIONPOINT + 14)
 
     /* This is the argument passed to the server push callback */
-    final val CURLMOPT_PUSHDATA = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 15)
+    final val PUSHDATA = new CurlMOption(CURLOPTTYPE_OBJECTPOINT + 15)
 
     /* maximum number of concurrent streams to support on a connection */
-    final val CURLMOPT_MAX_CONCURRENT_STREAMS = new CurlMOption(CURLOPTTYPE_LONG + 16)
+    final val MAX_CONCURRENT_STREAMS = new CurlMOption(CURLOPTTYPE_LONG + 16)
 
   def globalInit(flags: Long): Code = lib.curl_global_init(flags)
 

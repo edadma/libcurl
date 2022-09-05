@@ -53,7 +53,7 @@ import scala.scalanative.unsafe._
 
   def curl_multi_add_handle(multi: CURLM, easy: CURL): CInt = extern
 
-  def curl_multi_setopt(multi_handle: CURLM, option: CInt, param: CVarArg): CInt = extern
+  def curl_multi_setopt(multi_handle: CURLM, option: CInt, param: Long): CInt = extern
 
   def curl_multi_setopt(multi_handle: CURLM, option: CInt, param: Ptr[Byte]): CInt = extern
 

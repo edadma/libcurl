@@ -45,9 +45,9 @@ import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
       multi = multiInit
       println(s"initilized multiHandle $multi")
       println("socket function")
-      val setopt_r_1 = multi_setopt_ptr(multi, SOCKETFUNCTION, func_to_ptr(socketCB))
+      val setopt_r_1 = curl_multi_setopt(multi, SOCKETFUNCTION, func_to_ptr(socketCB))
       println("timer function")
-      val setopt_r_2 = multi_setopt_ptr(multi, TIMERFUNCTION, func_to_ptr(startTimerCB))
+      val setopt_r_2 = curl_multi_setopt(multi, TIMERFUNCTION, func_to_ptr(startTimerCB))
       println(s"timerCB: $startTimerCB")
 
       check(uv_timer_init(loop, timerHandle), "uv_timer_init")
@@ -131,7 +131,7 @@ import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
       return size * nmemb
     }
 
-  val socketCB =
+  val socketCB: CFuncPtr5[] =
     (curl: Curl, socket: Ptr[Byte], action: Int, data: Ptr[Byte], socket_data: Ptr[Byte]) => {
       println(s"socketCB called with action $action")
       val pollHandle = if (socket_data == null) {
