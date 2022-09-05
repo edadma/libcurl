@@ -6,6 +6,7 @@ import scala.scalanative.unsafe._
 @extern object LibCurl:
   type CURL = Ptr[Byte]
   type CURLoption = CInt
+  type CURLMoption = CInt
   type CURLINFO = CInt
   type CURLcode = CInt
   type CURLMcode = CInt
