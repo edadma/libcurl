@@ -170,14 +170,14 @@ import scala.concurrent.Promise
     }
 
   val pollCB =
-    (pollHandle: PollHandle, status: Int, events: Int) => {
+    (pollHandle: uv_poll_t, status: Int, events: Int) => {
       println(s"""ready_for_curl fired with status $status and
                 events $events""")
-      val socket = !(pollHandle.asInstanceOf[Ptr[Ptr[Byte]]])
+      val socket = !(pollHandle.asInstanceOf[Ptr[CInt]])
       val actions = (events & 1) | (events & 2)
       val running_handles = stackalloc[Int]()
       val result = curl_multi_socket_action(multi, socket, actions, running_handles)
-      println("multi_socket_action", result)
+      println(("multi_socket_action", result))
     }
 
   val startTimerCB =
@@ -204,7 +204,7 @@ import scala.concurrent.Promise
   def cleanup_requests(): Unit = {
     val messages = stackalloc[Int]()
     val privateDataPtr = stackalloc[Ptr[Long]]()
-    var message: Ptr[CurlMessage] = curl_multi_info_read(multi, messages)
+    var message: CURLMsgp = curl_multi_info_read(multi, messages)
     while (message != null) {
       println(s"""Got a message ${message._1} from multi_info_read,
               ${!messages} left in queue""")
