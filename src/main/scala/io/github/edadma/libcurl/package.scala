@@ -1308,7 +1308,7 @@ package object libcurl:
     def easyGetinfo(info: Info): (Code, Long) =
       val longp = stackalloc[CLong]()
 
-      (lib.curl_easy_getinfo(curl, info.value, longp), !longp)
+      (lib.curl_easy_getinfo(curl, info.value, longp.asInstanceOf[Ptr[Byte]]), !longp)
   end Curl
 
   def multiInit: Curlm = lib.curl_multi_init

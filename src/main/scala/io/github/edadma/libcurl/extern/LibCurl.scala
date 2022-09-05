@@ -37,7 +37,7 @@ import scala.scalanative.unsafe._
 
   def curl_easy_setopt(curl: CURL, option: CURLoption, arg: curl_write_callback): CURLcode = extern
 
-  def curl_easy_getinfo(handle: CURL, info: CURLINFO, arg: Ptr[CLong]): CURLcode = extern
+  def curl_easy_getinfo(handle: CURL, info: CURLINFO, arg: Ptr[Byte]): CURLcode = extern
 
   def curl_easy_perform(easy_handle: CURL): CURLcode = extern
 
@@ -55,7 +55,7 @@ import scala.scalanative.unsafe._
 
   def curl_multi_setopt(multi_handle: CURLM, option: CInt, param: Long): CInt = extern
 
-  def curl_multi_setopt(multi_handle: CURLM, option: CInt, param: Ptr[Byte]): CInt = extern
+  def curl_multi_setopt(multi_handle: CURLM, option: CInt, param: CurlSocketCallback): CInt = extern
 
   def curl_multi_assign(multi_handle: CURLM, sockfd: CInt, sockptr: Ptr[Byte]): CInt = extern
 

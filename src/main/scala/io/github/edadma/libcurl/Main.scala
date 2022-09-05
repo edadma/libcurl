@@ -6,8 +6,10 @@ import scala.scalanative.libc.*
 import stdlib.*
 import string.*
 import io.github.edadma.libcurl.extern.LibCurl.*
-
 import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
+import io.github.spritzsn.libuv.extern.LibUV.*
+
+import scala.concurrent.Promise
 
 @main def run(): Unit =
 //  globalInit(GLOBAL_ALL)
@@ -45,9 +47,9 @@ import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
       multi = multiInit
       println(s"initilized multiHandle $multi")
       println("socket function")
-      val setopt_r_1 = curl_multi_setopt(multi, SOCKETFUNCTION, func_to_ptr(socketCB))
+      val setopt_r_1 = curl_multi_setopt(multi, CurlMOption.SOCKETFUNCTION, socketCB)
       println("timer function")
-      val setopt_r_2 = curl_multi_setopt(multi, TIMERFUNCTION, func_to_ptr(startTimerCB))
+      val setopt_r_2 = curl_multi_setopt(multi, CurlMOption.TIMERFUNCTION, startTimerCB)
       println(s"timerCB: $startTimerCB")
 
       check(uv_timer_init(loop, timerHandle), "uv_timer_init")
@@ -68,6 +70,8 @@ import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
   def addHeader(slist: Ptr[CurlSList], header: String): Ptr[CurlSList] = Zone { implicit z =>
     slist_append(slist, toCString(header))
   }
+
+  def check(code: Int, error: String): Unit = if code != 0 then sys.error(error)
 
   def startRequest(
       method: Int,
@@ -131,7 +135,7 @@ import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
       return size * nmemb
     }
 
-  val socketCB: CFuncPtr5[] =
+  val socketCB: CurlSocketCallback =
     (curl: Curl, socket: Ptr[Byte], action: Int, data: Ptr[Byte], socket_data: Ptr[Byte]) => {
       println(s"socketCB called with action $action")
       val pollHandle = if (socket_data == null) {
@@ -172,7 +176,7 @@ import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
       val socket = !(pollHandle.asInstanceOf[Ptr[Ptr[Byte]]])
       val actions = (events & 1) | (events & 2)
       val running_handles = stackalloc[Int]()
-      val result = multi_socket_action(multi, socket, actions, running_handles)
+      val result = curl_multi_socket_action(multi, socket, actions, running_handles)
       println("multi_socket_action", result)
     }
 
@@ -200,16 +204,16 @@ import io.github.edadma.libcurl.LibCurlConstants.POLL_NONE
   def cleanup_requests(): Unit = {
     val messages = stackalloc[Int]()
     val privateDataPtr = stackalloc[Ptr[Long]]()
-    var message: Ptr[CurlMessage] = multi_info_read(multi, messages)
+    var message: Ptr[CurlMessage] = curl_multi_info_read(multi, messages)
     while (message != null) {
       println(s"""Got a message ${message._1} from multi_info_read,
               ${!messages} left in queue""")
       val handle: Curl = message._2
-      check(easy_getinfo(handle, GET_PRIVATEDATA, privateDataPtr.asInstanceOf[Ptr[Byte]]), "getinfo")
+      check(curl_easy_getinfo(handle, Info.PRIVATE.value, privateDataPtr.asInstanceOf[Ptr[Byte]]), "getinfo")
       val privateData = !privateDataPtr
       val reqId = !privateData
       val reqData = requests.remove(reqId).get
-      val promise = Curl.requestPromises.remove(reqId).get
+      val promise = requestPromises.remove(reqId).get
       promise.success(reqData)
       message = curl_multi_info_read(multi, messages)
     }
