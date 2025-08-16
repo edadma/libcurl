@@ -10,11 +10,14 @@ This facade provides a simple HTTP client for Scala Native using the widely-avai
 
 ## Features
 
-✅ **Synchronous HTTP requests** - Simple `fetch(url)` API  
+✅ **Multiple HTTP methods** - GET, POST, PUT, DELETE support  
+✅ **Custom headers** - Authorization, Content-Type, User-Agent, etc.  
+✅ **Request bodies** - JSON, form data, plain text  
 ✅ **Binary + Text support** - Handles any response type (JSON, images, PDFs, etc.)  
 ✅ **Thread-safe** - Concurrent requests won't interfere  
 ✅ **HTTP status codes** - Proper 200, 404, 500, etc. handling  
 ✅ **Memory efficient** - Automatic buffer management and cleanup  
+✅ **HTTPS support** - SSL/TLS works out of the box  
 ✅ **Minimal dependencies** - Just libcurl, available on most systems
 
 ## Quick Start
@@ -49,6 +52,24 @@ if response.success then
 else
   println("Request failed")
 
+// GET with Bearer token authentication
+val authResponse = fetch(
+  "https://api.example.com/protected",
+  headers = Map("Authorization" -> "Bearer your-token-here")
+)
+
+// POST JSON data
+val jsonData = """{"name": "John", "email": "john@example.com"}"""
+val postResponse = fetch(
+  "https://api.example.com/users",
+  "POST",
+  Some(jsonData), 
+  Map(
+    "Content-Type" -> "application/json",
+    "Authorization" -> "Bearer api-token"
+  )
+)
+
 // Binary data (images, files, etc.)
 val imageResponse = fetch("https://example.com/photo.jpg")
 if imageResponse.success then
@@ -67,32 +88,38 @@ case class HttpResponse(
   def bodyAsString: String                  // UTF-8 string
   def bodyAsString(charset: String): String // Custom charset
 
-def fetch(url: String): HttpResponse
+def fetch(
+  url: String,
+  method: String = "GET",               // HTTP method
+  body: Option[String] = None,          // Request body  
+  headers: Map[String, String] = Map.empty  // Custom headers
+): HttpResponse
 ```
 
 ## Current Limitations
 
-This is an **early stage** facade focused on basic functionality:
+This is still an **early stage** facade with some limitations:
 
-- ❌ **GET requests only** - No POST, PUT, DELETE yet
-- ❌ **No custom headers** - Uses libcurl defaults
-- ❌ **No authentication** - Basic auth, Bearer tokens not supported
-- ❌ **No timeouts** - Uses libcurl defaults
+- ❌ **No response headers** - Only status code captured, headers not parsed yet
+- ❌ **No authentication helpers** - Must manually set Authorization headers
+- ❌ **No timeout configuration** - Uses libcurl defaults
 - ❌ **No redirect control** - Uses libcurl defaults
 - ❌ **No SSL options** - Uses system defaults
-- ❌ **No response headers** - Only status code captured
+- ❌ **No file upload helpers** - No multipart/form-data support yet
+- ❌ **No cookie support** - No session/cookie management
 
 ## Roadmap
 
 Planned features for future versions:
 
-- **HTTP methods** - POST, PUT, DELETE with request bodies
-- **Request headers** - Custom headers, authentication
-- **Response headers** - Access to all response headers
+- **Response headers** - Access to all response headers and metadata
+- **Authentication helpers** - Built-in support for Basic auth, OAuth flows
+- **File uploads** - Multipart form data support
 - **Timeouts** - Connection and read timeout configuration
 - **Error handling** - Better error messages and types
 - **SSL options** - Certificate validation, custom CA
-- **Advanced options** - Redirects, compression, cookies
+- **Advanced options** - Redirects, compression, cookies, sessions
+- **Async support** - Future-based API for non-blocking requests
 
 ## Technical Details
 
