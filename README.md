@@ -26,7 +26,7 @@ This facade provides a simple HTTP client for Scala Native using the widely-avai
 
 **Add to build.sbt:**
 ```scala
-libraryDependencies += "io.github.edadma" %%% "libcurl" % "0.0.3"
+libraryDependencies += "io.github.edadma" %%% "libcurl" % "0.0.4"
 ```
 
 **Install libcurl development headers:**
@@ -46,8 +46,8 @@ import io.github.edadma.libcurl.*
 // Simple GET request
 val response = fetch("https://api.github.com/users/octocat")
 
-if response.success then
-  println(s"Status: ${response.statusCode}")
+if response.ok then
+  println(s"Status: ${response.status}")
   println(s"JSON: ${response.bodyAsString}")
 else
   println("Request failed")
@@ -63,7 +63,7 @@ val jsonData = """{"name": "John", "email": "john@example.com"}"""
 val postResponse = fetch(
   "https://api.example.com/users",
   "POST",
-  Some(jsonData), 
+  Some(jsonData),
   Map(
     "Content-Type" -> "application/json",
     "Authorization" -> "Bearer api-token"
@@ -72,18 +72,18 @@ val postResponse = fetch(
 
 // Binary data (images, files, etc.)
 val imageResponse = fetch("https://example.com/photo.jpg")
-if imageResponse.success then
-  val bytes = imageResponse.body  // Array[Byte]
-  // Save to file, process, etc.
+if imageResponse.ok then
+  val bytes = imageResponse.body // Array[Byte]
+// Save to file, process, etc.
 ```
 
 ### API
 
 ```scala
 case class HttpResponse(
-  body: Array[Byte],          // Raw response data
-  statusCode: Int,            // HTTP status (200, 404, etc.)
-  success: Boolean            // Whether request completed
+  body: Array[Byte],     // Raw response data
+  status: Int,           // HTTP status (200, 404, etc.)
+  ok: Boolean            // true for 200-299, false otherwise
 ):
   def bodyAsString: String                  // UTF-8 string
   def bodyAsString(charset: String): String // Custom charset

@@ -5,9 +5,9 @@ package io.github.edadma.libcurl
     println("Testing basic GET request...")
     val getResponse = fetch("https://httpbin.org/get")
 
-    if getResponse.success then
+    if getResponse.ok then
       println("SUCCESS!")
-      println(s"Status Code: ${getResponse.statusCode}")
+      println(s"Status Code: ${getResponse.status}")
       println(s"Response: ${getResponse.bodyAsString}")
     else
       println("GET request failed")
@@ -17,9 +17,9 @@ package io.github.edadma.libcurl
     println("Testing default User-Agent...")
     val defaultUAResponse = fetch("https://httpbin.org/headers")
 
-    if defaultUAResponse.success then
+    if defaultUAResponse.ok then
       println("SUCCESS!")
-      println(s"Status Code: ${defaultUAResponse.statusCode}")
+      println(s"Status Code: ${defaultUAResponse.status}")
       println(s"Response: ${defaultUAResponse.bodyAsString}")
     else
       println("Default User-Agent request failed")
@@ -37,9 +37,9 @@ package io.github.edadma.libcurl
       ),
     )
 
-    if headersResponse.success then
+    if headersResponse.ok then
       println("SUCCESS!")
-      println(s"Status Code: ${headersResponse.statusCode}")
+      println(s"Status Code: ${headersResponse.status}")
       println(s"Response: ${headersResponse.bodyAsString}")
     else
       println("Headers request failed")
@@ -54,9 +54,9 @@ package io.github.edadma.libcurl
       Map("User-Agent" -> "MyApp/1.0.0"),
     )
 
-    if customUAResponse.success then
+    if customUAResponse.ok then
       println("SUCCESS!")
-      println(s"Status Code: ${customUAResponse.statusCode}")
+      println(s"Status Code: ${customUAResponse.status}")
       println(s"Response: ${customUAResponse.bodyAsString}")
     else
       println("Custom User-Agent request failed")
@@ -75,15 +75,15 @@ package io.github.edadma.libcurl
       ),
     )
 
-    if postResponse.success then
+    if postResponse.ok then
       println("SUCCESS!")
-      println(s"Status Code: ${postResponse.statusCode}")
+      println(s"Status Code: ${postResponse.status}")
       println(s"Response: ${postResponse.bodyAsString}")
     else
       println("POST request failed")
 
   catch
-    case e: CurlException =>
+    case e: FetchException =>
       println(s"Curl error: ${e.getMessage}")
     case e: Exception =>
       println(s"Other error: ${e.getMessage}")
