@@ -8,7 +8,7 @@ type WriteCallback = CFuncPtr4[Ptr[Byte], CSize, CSize, Ptr[Byte], CSize]
 
 @link("curl")
 @extern
-object Curl:
+object LibCurl:
   def curl_easy_init(): CURL                                                     = extern
   def curl_easy_cleanup(curl: CURL): Unit                                        = extern
   def curl_easy_perform(curl: CURL): CURLcode                                    = extern

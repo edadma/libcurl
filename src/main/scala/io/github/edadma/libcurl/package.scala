@@ -1,8 +1,7 @@
 package io.github.edadma.libcurl
 
-import io.github.edadma.libcurl.extern.{Curl as curl, CURL, CURLcode, WriteCallback}
+import io.github.edadma.libcurl.extern.{LibCurl, CURLcode, WriteCallback}
 import scala.scalanative.unsafe._
-import scala.scalanative.libc.stdlib._
 
 case class HttpResponse(body: String, statusCode: Int, success: Boolean)
 
@@ -42,7 +41,7 @@ private val writeCallback: WriteCallback =
 
 def fetch(url: String): HttpResponse =
   Zone:
-    val handle = curl.curl_easy_init()
+    val handle = LibCurl.curl_easy_init()
     if handle == null then
       throw new CurlException("Failed to initialize curl")
 
@@ -51,21 +50,21 @@ def fetch(url: String): HttpResponse =
       currentResponseData = ""
 
       // Set the URL
-      val urlResult = curl.curl_easy_setopt(handle, CURLOPT_URL, toCString(url))
+      val urlResult = LibCurl.curl_easy_setopt(handle, CURLOPT_URL, toCString(url))
       if urlResult != CURLE_OK then
         throw new CurlException(s"Failed to set URL: $url")
 
       // Set the write callback
-      val callbackResult = curl.curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeCallback)
+      val callbackResult = LibCurl.curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeCallback)
       if callbackResult != CURLE_OK then
         throw new CurlException("Failed to set write callback")
 
       // Perform the request
-      val performResult = curl.curl_easy_perform(handle)
+      val performResult = LibCurl.curl_easy_perform(handle)
 
       // Get the HTTP status code
       val statusCode = stackalloc[CLong]()
-      curl.curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, statusCode)
+      LibCurl.curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, statusCode)
 
       HttpResponse(
         body = currentResponseData,
@@ -74,4 +73,4 @@ def fetch(url: String): HttpResponse =
       )
 
     finally
-      curl.curl_easy_cleanup(handle)
+      LibCurl.curl_easy_cleanup(handle)
