@@ -61,10 +61,6 @@ def fetch(url: String): HttpResponse =
 
       requestBuffers(requestId) = responseBuffer
 
-//      // Store request ID in zone memory to pass as userdata
-//      val requestIdPtr = stackalloc[CInt]()
-//      !requestIdPtr = requestId
-
       // Set the URL
       val urlResult = LibCurl.curl_easy_setopt(handle, CURLOPT_URL, toCString(url))
       if urlResult != CURLE_OK then
