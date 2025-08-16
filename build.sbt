@@ -17,8 +17,8 @@ ThisBuild / sonatypeProfileName := "io.github.edadma"
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
-    url("https://github.com/edadma/sn_template"),
-    "scm:git@github.com:edadma/sn_template.git",
+    url("https://github.com/edadma/libcurl"),
+    "scm:git@github.com:edadma/libcurl.git",
   ),
 )
 ThisBuild / developers := List(
@@ -30,7 +30,7 @@ ThisBuild / developers := List(
   ),
 )
 
-ThisBuild / homepage := Some(url("https://github.com/edadma/sn_template"))
+ThisBuild / homepage := Some(url("https://github.com/edadma/libcurl"))
 
 ThisBuild / publishTo := {
   val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
@@ -38,7 +38,7 @@ ThisBuild / publishTo := {
   else localStaging.value
 }
 
-name := "sn_template"
+name := "libcurl"
 
 enablePlugins(ScalaNativePlugin)
 
