@@ -40,18 +40,20 @@ def fetch(url: String): HttpResponse =
       currentResponseData = ""
 
       // Set the URL
-      val urlResult = curl.curl_easy_setopt(handle, 10002, toCString(url).asInstanceOf[Ptr[Byte]]) // CURLOPT_URL
+      val urlResult = curl.curl_easy_setopt(handle, 10002, toCString(url)) // CURLOPT_URL
       if urlResult != 0 then // CURLE_OK
         throw new CurlException(s"Failed to set URL: $url")
 
-      // For now, let's try without the callback to test basic functionality
-      // TODO: Add callback back once we figure out the casting issue
+      // Set the write callback
+      val callbackResult = curl.curl_easy_setopt(handle, 20011, writeCallback) // CURLOPT_WRITEFUNCTION
+      if callbackResult != 0 then // CURLE_OK
+        throw new CurlException("Failed to set write callback")
 
-      // Perform the request (will output to stdout by default)
+      // Perform the request
       val performResult = curl.curl_easy_perform(handle)
 
       HttpResponse(
-        body = "Basic request completed - no response capture yet",
+        body = currentResponseData,
         success = performResult == 0, // CURLE_OK
       )
 
