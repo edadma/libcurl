@@ -25,15 +25,7 @@ val CURLINFO_RESPONSE_CODE: CInt = 2097154
 val CURLE_OK: CURLcode = 0
 
 // Per-request response buffers using simple counter (thread-safe)
-private val requestBuffers = TrieMap[Int, ArrayBuffer[Byte]]()
-private var nextRequestId  = 0
-private val requestIdLock  = new Object
-
-private def getNextRequestId(): Int =
-  requestIdLock.synchronized {
-    nextRequestId += 1
-    nextRequestId
-  }
+private val requestBuffers = TrieMap[Long, ArrayBuffer[Byte]]()
 
 // Write callback that handles binary data
 private val writeCallback: WriteCallback =
@@ -43,8 +35,7 @@ private val writeCallback: WriteCallback =
 
     if userdata != null then
       // userdata contains the request ID
-      val requestIdPtr = userdata.asInstanceOf[Ptr[CInt]]
-      val requestId    = !requestIdPtr
+      val requestId = userdata.toLong
 
       requestBuffers.get(requestId) match
         case Some(buffer) =>
@@ -63,19 +54,17 @@ private val writeCallback: WriteCallback =
 def fetch(url: String): HttpResponse =
   Zone:
     val handle = LibCurl.curl_easy_init()
-    if handle == null then
-      throw new CurlException("Failed to initialize curl")
-
-    // Generate unique request ID for this request
-    val requestId = getNextRequestId()
+    if handle == null then throw new CurlException("Failed to initialize curl")
+    val requestId = handle.toLong
 
     try
       val responseBuffer = ArrayBuffer[Byte]()
+
       requestBuffers(requestId) = responseBuffer
 
-      // Store request ID in zone memory to pass as userdata
-      val requestIdPtr = stackalloc[CInt]()
-      !requestIdPtr = requestId
+//      // Store request ID in zone memory to pass as userdata
+//      val requestIdPtr = stackalloc[CInt]()
+//      !requestIdPtr = requestId
 
       // Set the URL
       val urlResult = LibCurl.curl_easy_setopt(handle, CURLOPT_URL, toCString(url))
@@ -88,7 +77,7 @@ def fetch(url: String): HttpResponse =
         throw new CurlException("Failed to set write callback")
 
       // Set the userdata (pointer to request ID)
-      val dataResult = LibCurl.curl_easy_setopt(handle, CURLOPT_WRITEDATA, requestIdPtr.asInstanceOf[Ptr[Byte]])
+      val dataResult = LibCurl.curl_easy_setopt(handle, CURLOPT_WRITEDATA, requestId.toCSSize)
       if dataResult != CURLE_OK then
         throw new CurlException("Failed to set write data")
 
