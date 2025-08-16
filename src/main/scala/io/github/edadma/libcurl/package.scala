@@ -1,8 +1,7 @@
 package io.github.edadma.libcurl
 
-import io.github.edadma.libcurl.extern.{LibCurl, CURL, CURLcode, WriteCallback}
+import io.github.edadma.libcurl.extern.{LibCurl, CURLcode, WriteCallback}
 import scala.scalanative.unsafe._
-import scala.scalanative.libc.stdlib._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.concurrent.TrieMap
 
@@ -46,7 +45,7 @@ private val writeCallback: WriteCallback =
             i += 1
         case None =>
           // Request not found, should not happen
-          ()
+          sys.error("writeCallback: request not found")
 
     realsize
   }
