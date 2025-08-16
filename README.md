@@ -26,7 +26,7 @@ This facade provides a simple HTTP client for Scala Native using the widely-avai
 
 **Add to build.sbt:**
 ```scala
-libraryDependencies += "io.github.edadma" %%% "libcurl" % "0.0.4"
+libraryDependencies += "io.github.edadma" %%% "libcurl" % "0.0.5"
 ```
 
 **Install libcurl development headers:**

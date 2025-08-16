@@ -113,6 +113,10 @@ def fetch(
       // Perform the request
       val performResult = LibCurl.curl_easy_perform(handle)
 
+      // Check for network/curl errors first
+      if performResult != CURLE_OK then
+        throw new FetchException(s"Network error: curl error code $performResult")
+
       // Get the HTTP status code
       val statusCode = stackalloc[CLong]()
       LibCurl.curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, statusCode)
