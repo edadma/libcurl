@@ -5,7 +5,7 @@ ThisBuild / scalaVersion           := "3.7.2"
 ThisBuild / organization           := "io.github.edadma"
 ThisBuild / organizationName       := "edadma"
 ThisBuild / organizationHomepage   := Some(url("https://github.com/edadma"))
-ThisBuild / version                := "0.0.2"
+ThisBuild / version                := "0.0.3"
 ThisBuild / sonatypeCredentialHost := "central.sonatype.com"
 
 ThisBuild / publishConfiguration := publishConfiguration.value.withOverwrite(true).withChecksums(Vector.empty)
@@ -41,6 +41,11 @@ ThisBuild / publishTo := {
 name := "libcurl"
 
 enablePlugins(ScalaNativePlugin)
+
+enablePlugins(BuildInfoPlugin)
+
+buildInfoKeys    := Seq[BuildInfoKey](organization, name, version)
+buildInfoPackage := s"${organization.value}.${name.value}"
 
 scalacOptions ++= Seq(
   "-deprecation",

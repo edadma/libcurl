@@ -2,32 +2,85 @@ package io.github.edadma.libcurl
 
 @main def run(): Unit =
   try
-    println("Testing text response...")
-    val textResponse = fetch("http://httpbin.org/get")
+    println("Testing basic GET request...")
+    val getResponse = fetch("https://httpbin.org/get")
 
-    if textResponse.success then
+    if getResponse.success then
       println("SUCCESS!")
-      println(s"Status Code: ${textResponse.statusCode}")
-      println(s"Body size: ${textResponse.body.length} bytes")
-      println(s"Response as text: ${textResponse.bodyAsString}")
+      println(s"Status Code: ${getResponse.statusCode}")
+      println(s"Response: ${getResponse.bodyAsString}")
     else
-      println("Text request failed")
+      println("GET request failed")
 
-    println("\n" + "=" * 50 + "\n")
+    println("\n" + "=" * 60 + "\n")
 
-    println("Testing binary response...")
-    val binaryResponse = fetch("http://httpbin.org/bytes/100") // Returns 100 random bytes
+    println("Testing default User-Agent...")
+    val defaultUAResponse = fetch("https://httpbin.org/headers")
 
-    if binaryResponse.success then
+    if defaultUAResponse.success then
       println("SUCCESS!")
-      println(s"Status Code: ${binaryResponse.statusCode}")
-      println(s"Body size: ${binaryResponse.body.length} bytes")
-      println(s"First 10 bytes: ${binaryResponse.body.take(10).map(b => f"0x$b%02X").mkString(", ")}")
-
-      // Try to decode as text (should be mostly garbage)
-      println(s"As text (first 50 chars): ${binaryResponse.bodyAsString.take(50)}")
+      println(s"Status Code: ${defaultUAResponse.statusCode}")
+      println(s"Response: ${defaultUAResponse.bodyAsString}")
     else
-      println("Binary request failed")
+      println("Default User-Agent request failed")
+
+    println("\n" + "=" * 60 + "\n")
+
+    println("Testing GET with custom headers...")
+    val headersResponse = fetch(
+      "https://httpbin.org/headers",
+      "GET",
+      None,
+      Map(
+        "Authorization" -> "Bearer test-token-123",
+        "Custom-Header" -> "test-value",
+      ),
+    )
+
+    if headersResponse.success then
+      println("SUCCESS!")
+      println(s"Status Code: ${headersResponse.statusCode}")
+      println(s"Response: ${headersResponse.bodyAsString}")
+    else
+      println("Headers request failed")
+
+    println("\n" + "=" * 60 + "\n")
+
+    println("Testing custom User-Agent override...")
+    val customUAResponse = fetch(
+      "https://httpbin.org/headers",
+      "GET",
+      None,
+      Map("User-Agent" -> "MyApp/1.0.0"),
+    )
+
+    if customUAResponse.success then
+      println("SUCCESS!")
+      println(s"Status Code: ${customUAResponse.statusCode}")
+      println(s"Response: ${customUAResponse.bodyAsString}")
+    else
+      println("Custom User-Agent request failed")
+
+    println("\n" + "=" * 60 + "\n")
+
+    println("Testing POST with JSON...")
+    val jsonData     = """{"name": "John Doe", "email": "john@example.com", "age": 30}"""
+    val postResponse = fetch(
+      "https://httpbin.org/post",
+      "POST",
+      Some(jsonData),
+      Map(
+        "Content-Type"  -> "application/json",
+        "Authorization" -> "Bearer api-key-456",
+      ),
+    )
+
+    if postResponse.success then
+      println("SUCCESS!")
+      println(s"Status Code: ${postResponse.statusCode}")
+      println(s"Response: ${postResponse.bodyAsString}")
+    else
+      println("POST request failed")
 
   catch
     case e: CurlException =>

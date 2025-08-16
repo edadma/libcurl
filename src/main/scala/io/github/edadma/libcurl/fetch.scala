@@ -1,6 +1,6 @@
 package io.github.edadma.libcurl
 
-import io.github.edadma.libcurl.extern.{LibCurl, CURLcode, WriteCallback}
+import io.github.edadma.libcurl.extern.{LibCurl, CURL, CURLcode, WriteCallback, curl_slist}
 import scala.scalanative.unsafe._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.concurrent.TrieMap
@@ -16,6 +16,8 @@ class CurlException(message: String) extends RuntimeException(message)
 val CURLOPT_URL: CInt           = 10002
 val CURLOPT_WRITEFUNCTION: CInt = 20011
 val CURLOPT_WRITEDATA: CInt     = 10001
+val CURLOPT_HTTPHEADER: CInt    = 10023
+val CURLOPT_POSTFIELDS: CInt    = 10015
 
 // Curl info constants
 val CURLINFO_RESPONSE_CODE: CInt = 2097154
@@ -23,7 +25,10 @@ val CURLINFO_RESPONSE_CODE: CInt = 2097154
 // Curl error codes
 val CURLE_OK: CURLcode = 0
 
-// Per-request response buffers using simple counter (thread-safe)
+// Library version info
+private val DEFAULT_USER_AGENT = s"${BuildInfo.organization}.${BuildInfo.name}/${BuildInfo.version}"
+
+// Per-request response buffers using handle address as key (thread-safe)
 private val requestBuffers = TrieMap[Long, ArrayBuffer[Byte]]()
 
 // Write callback that handles binary data
@@ -45,24 +50,31 @@ private val writeCallback: WriteCallback =
             i += 1
         case None =>
           // Request not found, should not happen
-          sys.error("writeCallback: request not found")
+          ()
 
     realsize
   }
 
-def fetch(url: String): HttpResponse =
+def fetch(
+    url: String,
+    method: String = "GET",
+    body: Option[String] = None,
+    headers: Map[String, String] = Map.empty,
+): HttpResponse =
   Zone:
     val handle = LibCurl.curl_easy_init()
     if handle == null then throw new CurlException("Failed to initialize curl")
     val requestId = handle.toLong
 
+    // Declare headerList outside try block for cleanup access
+    var headerList: curl_slist = null
+
     try
       val responseBuffer = ArrayBuffer[Byte]()
-
       requestBuffers(requestId) = responseBuffer
 
       // Set the URL
-      val urlResult = LibCurl.curl_easy_setopt(handle, CURLOPT_URL, toCString(url))
+      val urlResult = LibCurl.curl_easy_setopt(handle, CURLOPT_URL, toCString(url).asInstanceOf[Ptr[Byte]])
       if urlResult != CURLE_OK then
         throw new CurlException(s"Failed to set URL: $url")
 
@@ -75,6 +87,28 @@ def fetch(url: String): HttpResponse =
       val dataResult = LibCurl.curl_easy_setopt(handle, CURLOPT_WRITEDATA, requestId.toCSSize)
       if dataResult != CURLE_OK then
         throw new CurlException("Failed to set write data")
+
+      // Add default User-Agent if not provided by user
+      val finalHeaders =
+        if headers.contains("User-Agent") then headers
+        else headers + ("User-Agent" -> DEFAULT_USER_AGENT)
+
+      // Set custom headers if provided
+      if finalHeaders.nonEmpty then
+        for (key, value) <- finalHeaders do
+          headerList = LibCurl.curl_slist_append(headerList, toCString(s"$key: $value"))
+
+        val headerResult = LibCurl.curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headerList.asInstanceOf[Ptr[Byte]])
+        if headerResult != CURLE_OK then
+          throw new CurlException("Failed to set headers")
+
+      // Set POST data if provided
+      body.foreach { bodyData =>
+        val postResult =
+          LibCurl.curl_easy_setopt(handle, CURLOPT_POSTFIELDS, toCString(bodyData).asInstanceOf[Ptr[Byte]])
+        if postResult != CURLE_OK then
+          throw new CurlException("Failed to set POST data")
+      }
 
       // Perform the request
       val performResult = LibCurl.curl_easy_perform(handle)
@@ -90,6 +124,10 @@ def fetch(url: String): HttpResponse =
       )
 
     finally
+      // Clean up header list if created
+      if headerList != null then
+        LibCurl.curl_slist_free_all(headerList)
+
       // Clean up this request's buffer and handle
       requestBuffers.remove(requestId)
       LibCurl.curl_easy_cleanup(handle)
