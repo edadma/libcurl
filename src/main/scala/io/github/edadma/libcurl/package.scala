@@ -19,11 +19,11 @@ val CURLINFO_RESPONSE_CODE: CInt = 2097154
 val CURLE_OK: CURLcode = 0
 
 // Simple thread-local storage for response data
-private var currentResponseData: String = ""
+private var currentResponseData = new StringBuilder
 
 // Write callback that uses thread-local storage
 private val writeCallback: WriteCallback =
-  CFuncPtr4.fromScalaFunction { (contents, size, nmemb, userdata) =>
+  CFuncPtr4.fromScalaFunction: (contents, size, nmemb, userdata) =>
     val realsize    = size * nmemb
     val realsizeInt = realsize.toInt
 
@@ -34,10 +34,9 @@ private val writeCallback: WriteCallback =
       dataBytes(i) = !(contents + i)
       i += 1
     val data = new String(dataBytes, "UTF-8")
-    currentResponseData += data
+    currentResponseData ++= data
 
     realsize
-  }
 
 def fetch(url: String): HttpResponse =
   Zone:
@@ -47,7 +46,7 @@ def fetch(url: String): HttpResponse =
 
     try
       // Reset response data
-      currentResponseData = ""
+      currentResponseData.clear
 
       // Set the URL
       val urlResult = LibCurl.curl_easy_setopt(handle, CURLOPT_URL, toCString(url))
@@ -67,7 +66,7 @@ def fetch(url: String): HttpResponse =
       LibCurl.curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, statusCode)
 
       HttpResponse(
-        body = currentResponseData,
+        body = currentResponseData.toString,
         statusCode = (!statusCode).toInt,
         success = performResult == CURLE_OK,
       )
