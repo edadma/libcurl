@@ -14,7 +14,7 @@ object LibCurl:
   def curl_easy_perform(curl: CURL): CURLcode                                    = extern
   def curl_easy_getinfo(curl: CURL, info: CInt, parameter: Ptr[CLong]): CURLcode = extern
 
-  // Multiple overloads for different parameter types
+  // Multiple overloads - avoid CString + Ptr[Byte] conflict
   def curl_easy_setopt(curl: CURL, option: CInt, parameter: CString): CURLcode       = extern
   def curl_easy_setopt(curl: CURL, option: CInt, parameter: WriteCallback): CURLcode = extern
   def curl_easy_setopt(curl: CURL, option: CInt, parameter: CLong): CURLcode         = extern
