@@ -4,9 +4,20 @@ import io.github.edadma.libcurl.extern.{Curl as curl, CURL, CURLcode, WriteCallb
 import scala.scalanative.unsafe._
 import scala.scalanative.libc.stdlib._
 
-case class HttpResponse(body: String, success: Boolean)
+case class HttpResponse(body: String, statusCode: Int, success: Boolean)
 
 class CurlException(message: String) extends RuntimeException(message)
+
+// Curl option constants
+val CURLOPT_URL: CInt           = 10002
+val CURLOPT_WRITEFUNCTION: CInt = 20011
+val CURLOPT_WRITEDATA: CInt     = 10001
+
+// Curl info constants
+val CURLINFO_RESPONSE_CODE: CInt = 2097154
+
+// Curl error codes
+val CURLE_OK: CURLcode = 0
 
 // Simple thread-local storage for response data
 private var currentResponseData: String = ""
@@ -40,21 +51,26 @@ def fetch(url: String): HttpResponse =
       currentResponseData = ""
 
       // Set the URL
-      val urlResult = curl.curl_easy_setopt(handle, 10002, toCString(url)) // CURLOPT_URL
-      if urlResult != 0 then // CURLE_OK
+      val urlResult = curl.curl_easy_setopt(handle, CURLOPT_URL, toCString(url))
+      if urlResult != CURLE_OK then
         throw new CurlException(s"Failed to set URL: $url")
 
       // Set the write callback
-      val callbackResult = curl.curl_easy_setopt(handle, 20011, writeCallback) // CURLOPT_WRITEFUNCTION
-      if callbackResult != 0 then // CURLE_OK
+      val callbackResult = curl.curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeCallback)
+      if callbackResult != CURLE_OK then
         throw new CurlException("Failed to set write callback")
 
       // Perform the request
       val performResult = curl.curl_easy_perform(handle)
 
+      // Get the HTTP status code
+      val statusCode = stackalloc[CLong]()
+      curl.curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, statusCode)
+
       HttpResponse(
         body = currentResponseData,
-        success = performResult == 0, // CURLE_OK
+        statusCode = (!statusCode).toInt,
+        success = performResult == CURLE_OK,
       )
 
     finally

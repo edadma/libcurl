@@ -7,6 +7,7 @@ package io.github.edadma.libcurl
 
     if response.success then
       println("SUCCESS!")
+      println(s"Status Code: ${response.statusCode}")
       println(s"Response body: ${response.body}")
     else
       println("Request failed")
